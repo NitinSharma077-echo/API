@@ -5,6 +5,7 @@ define("CURL_TIMEOUT_SECONDS", 25);
 define("ZOHO_ACCOUNTS_URL", getenv("ZOHO_ACCOUNTS_URL") ?: "https://accounts.zoho.in");
 define("ZOHO_API_DOMAIN", getenv("ZOHO_API_DOMAIN") ?: "https://www.zohoapis.in");
 define("ZOHO_CRM_DOMAIN", getenv("ZOHO_CRM_DOMAIN") ?: "https://crm.zoho.in");
+$LastZohoRefreshError = "";
 
 function getZohoRefreshConfig(){
 	$config = array(
@@ -66,9 +67,11 @@ function saveZohoTokenFile($data){
 }
 
 function refreshZohoAccessToken(){
+	global $LastZohoRefreshError;
 	$config = getZohoRefreshConfig();
 
 	if ($config["client_id"] == "" || $config["client_secret"] == "" || $config["refresh_token"] == "") {
+		$LastZohoRefreshError = "Missing Zoho refresh credentials";
 		return "";
 	}
 
@@ -99,14 +102,17 @@ function refreshZohoAccessToken(){
 	curl_close($curl);
 
 	if ($err) {
+		$LastZohoRefreshError = $err;
 		return "";
 	}
 
 	$data = json_decode($response, true);
 	if (!is_array($data) || !isset($data["access_token"])) {
+		$LastZohoRefreshError = $data ?: $response;
 		return "";
 	}
 
+	$LastZohoRefreshError = "";
 	saveZohoTokenFile($data);
 	return $data["access_token"];
 }
@@ -165,7 +171,8 @@ $leadAmount ="";
 
 // echo "AccessToken: ".$AccessToken."<br/>";
 
-function GetAccountData($AccessToken1, $Rec_Id){
+function GetAccountData($AccessToken1, $Rec_Id, $retryOnInvalidToken = true){
+	global $AccessToken;
 	$curl = curl_init();
 	curl_setopt_array($curl, array(
 		CURLOPT_URL => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/$Rec_Id",
@@ -194,6 +201,16 @@ function GetAccountData($AccessToken1, $Rec_Id){
 		// echo "<pre>";
 		// var_dump($response);
 	}
+
+	$responseData = json_decode($response, true);
+	if ($retryOnInvalidToken && is_array($responseData) && isset($responseData["code"]) && $responseData["code"] == "INVALID_TOKEN") {
+		$refreshedToken = refreshZohoAccessToken();
+		if ($refreshedToken != "") {
+			$AccessToken = $refreshedToken;
+			return GetAccountData($refreshedToken, $Rec_Id, false);
+		}
+	}
+
 	return $response;
 }
 
@@ -207,6 +224,7 @@ if (!is_array($ZohoDecoded) || !isset($ZohoDecoded["data"][0])) {
 		"status" => "error",
 		"message" => "Unable to fetch Zoho CRM record",
 		"zoho_response" => $ZohoDecoded ?: $ZohoData,
+		"token_refresh_error" => $LastZohoRefreshError,
 	));
 	exit;
 }
