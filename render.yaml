@@ -16,3 +16,9 @@ services:
         sync: false
       - key: ZOHO_REDIRECT_URI
         value: https://crm.zoho.in/
+      - key: ZOHO_ACCOUNTS_URL
+        value: https://accounts.zoho.in
+      - key: ZOHO_API_DOMAIN
+        value: https://www.zohoapis.in
+      - key: ZOHO_CRM_DOMAIN
+        value: https://crm.zoho.in
