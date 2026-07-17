@@ -1,7 +1,7 @@
 <?php
 
-define("CURL_CONNECT_TIMEOUT_SECONDS", 5);
-define("CURL_TIMEOUT_SECONDS", 12);
+define("CURL_CONNECT_TIMEOUT_SECONDS", 15);
+define("CURL_TIMEOUT_SECONDS", 25);
 
 function getZohoRefreshConfig(){
 	$config = array(
@@ -163,7 +163,6 @@ $leadAmount ="";
 // echo "AccessToken: ".$AccessToken."<br/>";
 
 function GetAccountData($AccessToken1, $Rec_Id){
-	global $AccessToken;
 	$curl = curl_init();
 	curl_setopt_array($curl, array(
 		CURLOPT_URL => "https://www.zohoapis.com/crm/v2/GL_Ashok_1/$Rec_Id",
@@ -176,7 +175,7 @@ function GetAccountData($AccessToken1, $Rec_Id){
 		CURLOPT_CUSTOMREQUEST => "GET",
 		CURLOPT_HTTPHEADER => array(
 
-			"Authorization: Zoho-oauthtoken ".$AccessToken,	
+			"Authorization: Zoho-oauthtoken ".$AccessToken1,	
 		),
 	));
 
@@ -185,7 +184,7 @@ function GetAccountData($AccessToken1, $Rec_Id){
 	$err = curl_error($curl);
 	curl_close($curl);
 	if ($err) {
-		echo "cURL Error #:" . $err;
+		return json_encode(array("error" => "Zoho CRM request failed", "details" => $err));
 
 	} else {
 		// $response = json_decode($response, true);	
@@ -195,7 +194,19 @@ function GetAccountData($AccessToken1, $Rec_Id){
 	return $response;
 }
 
-$ZohoData=GetAccountData($AccessToken1, $Rec_Id);
+$ZohoData=GetAccountData($AccessToken, $Rec_Id);
+
+$ZohoDecoded = json_decode($ZohoData, true);
+if (!is_array($ZohoDecoded) || !isset($ZohoDecoded["data"][0])) {
+	http_response_code(502);
+	header("Content-Type: application/json");
+	echo json_encode(array(
+		"status" => "error",
+		"message" => "Unable to fetch Zoho CRM record",
+		"zoho_response" => $ZohoDecoded ?: $ZohoData,
+	));
+	exit;
+}
 
 print_r("Ist stage data ".$ZohoData);
 
@@ -240,8 +251,26 @@ $get_nupay_token = getNupayToken();
 
 //might be removed
 function postToMuthoot($ZohoData, $AccessToken, $Rec_Id,$get_nupay_token){
+	$mobilePhone = "";
+	$email = "";
+	$leadAmount = "";
+	$pinCode = "";
+	$first_name = "";
+	$lastName = "";
+	$orig_gl_id = $Rec_Id;
 
 	$jDecode = json_decode($ZohoData,true);
+	if (!is_array($jDecode) || !isset($jDecode["data"][0]) || !is_array($jDecode["data"][0])) {
+		http_response_code(502);
+		header("Content-Type: application/json");
+		echo json_encode(array(
+			"status" => "error",
+			"message" => "Invalid Zoho CRM response",
+			"zoho_response" => $jDecode ?: $ZohoData,
+		));
+		return;
+	}
+
 	$AccData=$jDecode["data"][0];
 	
 	//echo "<pre>"; print_r($AccData); echo "</pre>";
@@ -252,9 +281,9 @@ function postToMuthoot($ZohoData, $AccessToken, $Rec_Id,$get_nupay_token){
 			$str_arr = explode (" ", $value);
 			$first_name = $str_arr[0]; 
 			// $first_name = str_replace(" ", "" , $first_name);
-			if($str_arr[1])
+			if(isset($str_arr[1]))
 				$lastName = $str_arr[1];	
-			elseif($str_arr[2])
+			elseif(isset($str_arr[1]) && isset($str_arr[2]))
 				$lastName = $str_arr[1]." ".$str_arr[2];	
 			else	
 				$lastName = $str_arr[0];					
@@ -306,11 +335,23 @@ function postToMuthoot($ZohoData, $AccessToken, $Rec_Id,$get_nupay_token){
 	curl_setopt($ch1, CURLOPT_HTTPHEADER, $headers);
 
 	$result = curl_exec($ch1);
+	$muthootErr = curl_error($ch1);
 
 	print_r("THIRD STAGE ".$result);
 
 
 	curl_close($ch1);
+
+	if ($muthootErr) {
+		http_response_code(502);
+		header("Content-Type: application/json");
+		echo json_encode(array(
+			"status" => "error",
+			"message" => "Muthoot API request failed",
+			"details" => $muthootErr,
+		));
+		return;
+	}
 
 	// echo $result;
 
@@ -342,10 +383,6 @@ function postToMuthoot($ZohoData, $AccessToken, $Rec_Id,$get_nupay_token){
 	// print_r(" ".$string1);
 
 	// var_dump(($string));
-
-    if (curl_errno($ch1)) {
-		echo 'Error:' . curl_error($ch1);
-	}
 
 		if (strpos($result, 'Lead Already Exist') == false && strpos($result, 'Muthoot_Existing_Cust') == false) {
 			updateGL($AccessToken,$orig_gl_id,'GL_Ashok_1',$crm_no,'');
