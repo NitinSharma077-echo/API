@@ -14,7 +14,23 @@ $AccessToken = $data["access_token"];
 
 // exit();
 
-$Rec_Id=$_GET['id'];  
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+$requestBody = json_decode(file_get_contents("php://input"), true);
+
+if ($requestMethod == "GET") {
+	$Rec_Id = $_GET['id'] ?? "";
+} elseif ($requestMethod == "POST") {
+	$Rec_Id = $_POST['id'] ?? ($requestBody['id'] ?? "");
+} else {
+	http_response_code(405);
+	header("Allow: GET, POST");
+	exit("Method Not Allowed");
+}
+
+if ($Rec_Id == "") {
+	http_response_code(400);
+	exit("Missing required parameter: id");
+}
 
 $mobilePhone ="";
 $Salutation ="Mr";
