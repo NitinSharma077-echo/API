@@ -1,4 +1,5 @@
 <?php
+ob_start();
 
 define("CURL_CONNECT_TIMEOUT_SECONDS", 15);
 define("CURL_TIMEOUT_SECONDS", 25);
@@ -341,7 +342,7 @@ function postToMuthoot($ZohoData, $AccessToken, $Rec_Id,$get_nupay_token){
 
 	$ch1 = curl_init();
 
-	curl_setopt($ch1, CURLOPT_URL, 'https://middleware.muthoot.org:1880/DAB');
+	curl_setopt($ch1, CURLOPT_URL, 'https://middleware.muthoot.org/DAB');
 	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch1, CURLOPT_CONNECTTIMEOUT, CURL_CONNECT_TIMEOUT_SECONDS);
 	curl_setopt($ch1, CURLOPT_TIMEOUT, CURL_TIMEOUT_SECONDS);
