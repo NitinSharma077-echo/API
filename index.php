@@ -135,7 +135,7 @@ $requestBody = json_decode(file_get_contents("php://input"), true);
 if ($requestMethod == "GET") {
 	$Rec_Id = $_GET['id'] ?? "";
 } elseif ($requestMethod == "POST") {
-	$Rec_Id = $_POST['id'] ?? ($requestBody['id'] ?? "");
+	$Rec_Id = $_POST['id'] ?? ($requestBody['id'] ?? ($_GET['id'] ?? ""));
 } else {
 	http_response_code(405);
 	header("Allow: GET, POST");
