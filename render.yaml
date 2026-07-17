@@ -15,10 +15,10 @@ services:
       - key: ZOHO_REFRESH_TOKEN
         sync: false
       - key: ZOHO_REDIRECT_URI
-        value: https://crm.zoho.in/
+        value: https://crm.zoho.com/
       - key: ZOHO_ACCOUNTS_URL
-        value: https://accounts.zoho.in
+        value: https://accounts.zoho.com
       - key: ZOHO_API_DOMAIN
-        value: https://www.zohoapis.in
+        value: https://www.zohoapis.com
       - key: ZOHO_CRM_DOMAIN
-        value: https://crm.zoho.in
+        value: https://crm.zoho.com

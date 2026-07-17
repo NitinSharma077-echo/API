@@ -2,9 +2,9 @@
 
 define("CURL_CONNECT_TIMEOUT_SECONDS", 15);
 define("CURL_TIMEOUT_SECONDS", 25);
-define("ZOHO_ACCOUNTS_URL", getenv("ZOHO_ACCOUNTS_URL") ?: "https://accounts.zoho.in");
-define("ZOHO_API_DOMAIN", getenv("ZOHO_API_DOMAIN") ?: "https://www.zohoapis.in");
-define("ZOHO_CRM_DOMAIN", getenv("ZOHO_CRM_DOMAIN") ?: "https://crm.zoho.in");
+define("ZOHO_ACCOUNTS_URL", getenv("ZOHO_ACCOUNTS_URL") ?: "https://accounts.zoho.com");
+define("ZOHO_API_DOMAIN", getenv("ZOHO_API_DOMAIN") ?: "https://www.zohoapis.com");
+define("ZOHO_CRM_DOMAIN", getenv("ZOHO_CRM_DOMAIN") ?: "https://crm.zoho.com");
 $LastZohoRefreshError = "";
 
 function getZohoRefreshConfig(){
@@ -12,7 +12,7 @@ function getZohoRefreshConfig(){
 		"client_id" => getenv("ZOHO_CLIENT_ID") ?: "",
 		"client_secret" => getenv("ZOHO_CLIENT_SECRET") ?: "",
 		"refresh_token" => getenv("ZOHO_REFRESH_TOKEN") ?: "",
-		"redirect_uri" => getenv("ZOHO_REDIRECT_URI") ?: "https://crm.zoho.in/",
+		"redirect_uri" => getenv("ZOHO_REDIRECT_URI") ?: "https://crm.zoho.com/",
 	);
 
 	if ($config["client_id"] != "" && $config["client_secret"] != "" && $config["refresh_token"] != "") {
@@ -31,7 +31,7 @@ function getZohoRefreshConfig(){
 			$config["client_id"] = $config["client_id"] ?: ($query["client_id"] ?? "");
 			$config["client_secret"] = $config["client_secret"] ?: ($query["client_secret"] ?? "");
 			$config["refresh_token"] = $config["refresh_token"] ?: ($query["refresh_token"] ?? "");
-			$config["redirect_uri"] = $config["redirect_uri"] ?: ($query["redirect_uri"] ?? "https://crm.zoho.in/");
+			$config["redirect_uri"] = $config["redirect_uri"] ?: ($query["redirect_uri"] ?? "https://crm.zoho.com/");
 		}
 	}
 

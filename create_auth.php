@@ -2,12 +2,12 @@
 
 $clientId = getenv("ZOHO_CLIENT_ID") ?: "1000.B45XORRZTDGF92YWO16OVLADJBIIEW";
 $clientSecret = getenv("ZOHO_CLIENT_SECRET") ?: "db8b19419f3afc519e089d09bdf383bea7357b31e1";
-$redirectUri = getenv("ZOHO_REDIRECT_URI") ?: "https://crm.zoho.in/";
+$redirectUri = getenv("ZOHO_REDIRECT_URI") ?: "https://crm.zoho.com/";
 $refreshToken = getenv("ZOHO_REFRESH_TOKEN") ?: "1000.88986f9b8c1e8d2257ed4ae8a7d13263.6a946b736a5755b571b6775b9252bf6b";
 
 $curl = curl_init();
 
-$accountsUrl = getenv("ZOHO_ACCOUNTS_URL") ?: "https://accounts.zoho.in";
+$accountsUrl = getenv("ZOHO_ACCOUNTS_URL") ?: "https://accounts.zoho.com";
 
 curl_setopt_array($curl, array(
   CURLOPT_URL => $accountsUrl . '/oauth/v2/token',
