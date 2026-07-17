@@ -1,14 +1,18 @@
 <?php
 
-$AccessToken= '1000.5c91aec9fd7ee3f8a6a5c1d370ec5882.3c99ca759a9167e43a266175b66e70e8';
+$AccessToken= getenv("ZOHO_ACCESS_TOKEN") ?: '1000.5c91aec9fd7ee3f8a6a5c1d370ec5882.3c99ca759a9167e43a266175b66e70e8';
 
-$json = file_get_contents("auth_token.txt");
+if (file_exists("auth_token.txt")) {
+	$json = file_get_contents("auth_token.txt");
 
-// Convert to array
-$data = json_decode($json, true);
+	// Convert to array
+	$data = json_decode($json, true);
 
-// Extract only the access token
-$AccessToken = $data["access_token"];
+	// Extract only the access token
+	if (isset($data["access_token"])) {
+		$AccessToken = $data["access_token"];
+	}
+}
 
 // print_r($AccessToken);
 
