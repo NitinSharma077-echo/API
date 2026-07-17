@@ -175,7 +175,7 @@ function GetAccountData($AccessToken1, $Rec_Id, $retryOnInvalidToken = true){
 	global $AccessToken;
 	$curl = curl_init();
 	curl_setopt_array($curl, array(
-		CURLOPT_URL => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/$Rec_Id",
+		CURLOPT_URL => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/$Rec_Id",
 		CURLOPT_RETURNTRANSFER => true,	
 		CURLOPT_ENCODING => "",
 		CURLOPT_MAXREDIRS => 10,
@@ -200,7 +200,7 @@ function GetAccountData($AccessToken1, $Rec_Id, $retryOnInvalidToken = true){
 			"error_type" => "curl_error",
 			"details" => $err,
 			"http_code" => $httpCode,
-			"requested_url" => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/$Rec_Id"
+			"requested_url" => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/$Rec_Id"
 		));
 	}
 
@@ -210,7 +210,7 @@ function GetAccountData($AccessToken1, $Rec_Id, $retryOnInvalidToken = true){
 			"error_type" => "empty_response",
 			"details" => "Zoho returned an empty response",
 			"http_code" => $httpCode,
-			"requested_url" => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/$Rec_Id"
+			"requested_url" => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/$Rec_Id"
 		));
 	}
 
@@ -418,18 +418,18 @@ function postToMuthoot($ZohoData, $AccessToken, $Rec_Id,$get_nupay_token){
 	// var_dump(($string));
 
 		if (strpos($result, 'Lead Already Exist') == false && strpos($result, 'Muthoot_Existing_Cust') == false) {
-			updateGL($AccessToken,$orig_gl_id,'GL_Ashok_1',$crm_no,'');
+			updateGL($AccessToken,$orig_gl_id,'GL_Ashok',$crm_no,'');
 			// if ($crm_no != '') {
 			print_r("UPDATING RECORD");
-			updateGL_new($AccessToken,$Rec_Id,'GL_Ashok_1', $crm_no, '');
+			updateGL_new($AccessToken,$Rec_Id,'GL_Ashok', $crm_no, '');
 		}
 
 		if ($crm_no == '') {
 
-			updateGL_duplicate($AccessToken,$orig_gl_id,'GL_Ashok_1',$crm_no,'');
+			updateGL_duplicate($AccessToken,$orig_gl_id,'GL_Ashok',$crm_no,'');
 			// if ($crm_no != '') {
 			print_r("UPDATING RECORD For Empty Value");
-			updateGL_newduplicate($AccessToken,$Rec_Id,'GL_Ashok_1', $crm_no, '');
+			updateGL_newduplicate($AccessToken,$Rec_Id,'GL_Ashok', $crm_no, '');
 
 		}
 
@@ -507,8 +507,8 @@ function createRecord($AccessToken,$Salutation,$first_name,$lastName,$gender,$mo
 
 function updateGL_new($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_ref){
 	global $AccessToken;
-	$module = "GL_Ashok_1";
-	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/".$Rec_Id;
+	$module = "GL_Ashok";
+	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/".$Rec_Id;
 
 	$date = date("Y/m/d");
 	$date = strval($date);
@@ -549,8 +549,8 @@ function updateGL_new($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_ref){
 function updateGL_newduplicate($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_ref){
 	global $AccessToken;
 	$LeadId_ref = "Lead Already Exist";
-	$module = "GL_Ashok_1";
-	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/".$Rec_Id;
+	$module = "GL_Ashok";
+	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/".$Rec_Id;
 
 	print_r("RECORD ID ". $Rec_Id);
 
@@ -591,7 +591,7 @@ function updateGL_newduplicate($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_
 function updateGL($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_ref){
 	global $AccessToken;
 	$module = "GL";
-	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/".$Rec_Id;
+	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/".$Rec_Id;
 
 	$data='{ "data": [{"Muthoot_CRM_No": "'.str_replace("\n", " ", $LeadId_ref).'","Muthoot_Nupay_Ref_No": "'.str_replace("\n", " ", $nupay_ref).'"},], "trigger": ["approval"]}';
 
@@ -632,7 +632,7 @@ function updateGL_duplicate($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_ref
 	$module = "GL";
 	print_r("RECORD ID". $Rec_Id);
 	$LeadId_ref = "Lead Already Exists";
-	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/".$Rec_Id;
+	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/".$Rec_Id;
 
 	$data='{ "data": [{"Muthoot_Existing_Cust": "Lead Already Exist","Muthoot_Nupay_Ref_No": "'.str_replace("\n", " ", $nupay_ref).'"},], "trigger": ["approval"]}';
 
@@ -667,7 +667,7 @@ function updateGL_duplicate($AccessToken1,$Rec_Id,$module,$LeadId_ref,$nupay_ref
 function updateExistCustomer($AccessToken1,$Rec_Id,$module,$Message,$nupay_ref){
 	global $AccessToken;
 	$module = "GL";
-	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/".$Rec_Id;
+	$url = ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok/".$Rec_Id;
 	$data='{ "data": [{"Muthoot_CRM_No": "'.str_replace("\n", " ", $nupay_ref).'"},], "trigger": ["approval"]}';
 	
 	$curl = curl_init();
