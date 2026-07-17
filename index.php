@@ -171,7 +171,6 @@ $lastName ="";
 $leadAmount ="";
 
 // echo "AccessToken: ".$AccessToken."<br/>";
-
 function GetAccountData($AccessToken1, $Rec_Id, $retryOnInvalidToken = true){
 	global $AccessToken;
 	$curl = curl_init();
@@ -191,16 +190,28 @@ function GetAccountData($AccessToken1, $Rec_Id, $retryOnInvalidToken = true){
 	));
 
 	$response = curl_exec($curl);
-
 	$err = curl_error($curl);
+	$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 	curl_close($curl);
-	if ($err) {
-		return json_encode(array("error" => "Zoho CRM request failed", "details" => $err));
 
-	} else {
-		// $response = json_decode($response, true);	
-		// echo "<pre>";
-		// var_dump($response);
+	if ($err) {
+		return json_encode(array(
+			"error" => "Zoho CRM request failed",
+			"error_type" => "curl_error",
+			"details" => $err,
+			"http_code" => $httpCode,
+			"requested_url" => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/$Rec_Id"
+		));
+	}
+
+	if ($response === false || trim($response) === "") {
+		return json_encode(array(
+			"error" => "Zoho CRM request failed",
+			"error_type" => "empty_response",
+			"details" => "Zoho returned an empty response",
+			"http_code" => $httpCode,
+			"requested_url" => ZOHO_API_DOMAIN . "/crm/v2/GL_Ashok_1/$Rec_Id"
+		));
 	}
 
 	$responseData = json_decode($response, true);
