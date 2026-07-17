@@ -8,3 +8,11 @@ services:
     envVars:
       - key: ZOHO_ACCESS_TOKEN
         sync: false
+      - key: ZOHO_CLIENT_ID
+        sync: false
+      - key: ZOHO_CLIENT_SECRET
+        sync: false
+      - key: ZOHO_REFRESH_TOKEN
+        sync: false
+      - key: ZOHO_REDIRECT_URI
+        value: https://crm.zoho.in/

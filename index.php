@@ -1,18 +1,129 @@
 <?php
 
-$AccessToken= getenv("ZOHO_ACCESS_TOKEN") ?: '1000.5c91aec9fd7ee3f8a6a5c1d370ec5882.3c99ca759a9167e43a266175b66e70e8';
+function getZohoRefreshConfig(){
+	$config = array(
+		"client_id" => getenv("ZOHO_CLIENT_ID") ?: "",
+		"client_secret" => getenv("ZOHO_CLIENT_SECRET") ?: "",
+		"refresh_token" => getenv("ZOHO_REFRESH_TOKEN") ?: "",
+		"redirect_uri" => getenv("ZOHO_REDIRECT_URI") ?: "https://crm.zoho.in/",
+	);
 
-if (file_exists("auth_token.txt")) {
-	$json = file_get_contents("auth_token.txt");
-
-	// Convert to array
-	$data = json_decode($json, true);
-
-	// Extract only the access token
-	if (isset($data["access_token"])) {
-		$AccessToken = $data["access_token"];
+	if ($config["client_id"] != "" && $config["client_secret"] != "" && $config["refresh_token"] != "") {
+		return $config;
 	}
+
+	if (!file_exists("create_auth.php")) {
+		return $config;
+	}
+
+	$authScript = file_get_contents("create_auth.php");
+	if (preg_match("/CURLOPT_URL\\s*=>\\s*'([^']+)'/", $authScript, $matches)) {
+		$parts = parse_url($matches[1]);
+		if (isset($parts["query"])) {
+			parse_str($parts["query"], $query);
+			$config["client_id"] = $config["client_id"] ?: ($query["client_id"] ?? "");
+			$config["client_secret"] = $config["client_secret"] ?: ($query["client_secret"] ?? "");
+			$config["refresh_token"] = $config["refresh_token"] ?: ($query["refresh_token"] ?? "");
+			$config["redirect_uri"] = $config["redirect_uri"] ?: ($query["redirect_uri"] ?? "https://crm.zoho.in/");
+		}
+	}
+
+	if (preg_match('/\\$clientId\\s*=\\s*getenv\\("ZOHO_CLIENT_ID"\\)\\s*\\?:\\s*"([^"]+)"/', $authScript, $matches)) {
+		$config["client_id"] = $config["client_id"] ?: $matches[1];
+	}
+	if (preg_match('/\\$clientSecret\\s*=\\s*getenv\\("ZOHO_CLIENT_SECRET"\\)\\s*\\?:\\s*"([^"]+)"/', $authScript, $matches)) {
+		$config["client_secret"] = $config["client_secret"] ?: $matches[1];
+	}
+	if (preg_match('/\\$refreshToken\\s*=\\s*getenv\\("ZOHO_REFRESH_TOKEN"\\)\\s*\\?:\\s*"([^"]+)"/', $authScript, $matches)) {
+		$config["refresh_token"] = $config["refresh_token"] ?: $matches[1];
+	}
+	if (preg_match('/\\$redirectUri\\s*=\\s*getenv\\("ZOHO_REDIRECT_URI"\\)\\s*\\?:\\s*"([^"]+)"/', $authScript, $matches)) {
+		$config["redirect_uri"] = $config["redirect_uri"] ?: $matches[1];
+	}
+
+	return $config;
 }
+
+function readZohoTokenFile(){
+	if (!file_exists("auth_token.txt")) {
+		return array();
+	}
+
+	$data = json_decode(file_get_contents("auth_token.txt"), true);
+	return is_array($data) ? $data : array();
+}
+
+function saveZohoTokenFile($data){
+	$data["generated_at"] = time();
+	$data["expires_at"] = time() + ((int)($data["expires_in"] ?? 3600));
+	file_put_contents("auth_token.txt", json_encode($data));
+}
+
+function refreshZohoAccessToken(){
+	$config = getZohoRefreshConfig();
+
+	if ($config["client_id"] == "" || $config["client_secret"] == "" || $config["refresh_token"] == "") {
+		return "";
+	}
+
+	$curl = curl_init();
+	curl_setopt_array($curl, array(
+		CURLOPT_URL => "https://accounts.zoho.com/oauth/v2/token",
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => "",
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 30,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => "POST",
+		CURLOPT_POSTFIELDS => http_build_query(array(
+			"grant_type" => "refresh_token",
+			"client_id" => $config["client_id"],
+			"client_secret" => $config["client_secret"],
+			"redirect_uri" => $config["redirect_uri"],
+			"refresh_token" => $config["refresh_token"],
+		)),
+		CURLOPT_HTTPHEADER => array(
+			"Content-Type: application/x-www-form-urlencoded",
+		),
+	));
+
+	$response = curl_exec($curl);
+	$err = curl_error($curl);
+	curl_close($curl);
+
+	if ($err) {
+		return "";
+	}
+
+	$data = json_decode($response, true);
+	if (!is_array($data) || !isset($data["access_token"])) {
+		return "";
+	}
+
+	saveZohoTokenFile($data);
+	return $data["access_token"];
+}
+
+function getZohoAccessToken(){
+	$data = readZohoTokenFile();
+
+	if (isset($data["access_token"]) && isset($data["expires_at"]) && $data["expires_at"] > time() + 300) {
+		return $data["access_token"];
+	}
+
+	$refreshedToken = refreshZohoAccessToken();
+	if ($refreshedToken != "") {
+		return $refreshedToken;
+	}
+
+	if (isset($data["access_token"])) {
+		return $data["access_token"];
+	}
+
+	return getenv("ZOHO_ACCESS_TOKEN") ?: '1000.5c91aec9fd7ee3f8a6a5c1d370ec5882.3c99ca759a9167e43a266175b66e70e8';
+}
+
+$AccessToken = getZohoAccessToken();
 
 // print_r($AccessToken);
 
