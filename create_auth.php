@@ -7,8 +7,10 @@ $refreshToken = getenv("ZOHO_REFRESH_TOKEN") ?: "1000.88986f9b8c1e8d2257ed4ae8a7
 
 $curl = curl_init();
 
+$accountsUrl = getenv("ZOHO_ACCOUNTS_URL") ?: "https://accounts.zoho.in";
+
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'https://accounts.zoho.com/oauth/v2/token',
+  CURLOPT_URL => $accountsUrl . '/oauth/v2/token',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
